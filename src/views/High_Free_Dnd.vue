@@ -33,12 +33,16 @@
               <!-- Elements -->
               <Container
                 group-name="2"
-                @drop-ready="onDropReady(col.id)"
                 @drop="onElementsDrop(col.id, index, $event)"
                 :get-child-payload="getElementPayload(col.id)"
                 :should-animate-drop="shouldAnimateDrop"
                 class="guide"
                 >
+                <div 
+                  v-if="!col.children || col.children.length === 0"
+                  class="drop-tips"
+                  >
+                </div>
                 <Draggable
                   v-for="el in col.children"
                   :key="el.id"
@@ -117,46 +121,15 @@ export default {
       previewer: {
         type: "container",
         children: []
-      },
-      styles: {
-        previewerStyle: {
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          width: "800px",
-          height: "200px"
-        },
-        layoutStyle: {}
       }
     }
   },
   mounted () {
-    let params = [
-      {name: 'previewer', size: 1, lineStyle: 'dashed', color: '#842'},
-      {name: 'layout', size: 1, lineStyle: 'dashed', color: '#995'}
-    ]
-    this.initBorderStyle(params)
     // 初始化
     const init = this.getSourceLayoutPayload(0)
     this.previewer.children.push(init)
   },
   methods: {
-    // init
-    initBorderStyle (arr) {
-      arr.map(v => {
-        const styles = this.styles[`${v.name}Style`]
-        const border = `${v.size}px ${v.lineStyle} ${v.color}`
-        let newStyle = {
-          borderTop: border,
-          borderBottom: border,
-          borderLeft: border,
-          borderRight: border,
-          boxSizing: 'border-box',
-          ...styles
-        }
-        this.styles[`${v.name}Style`] = newStyle
-      })
-    },
 
     // 拖拽源组件
     getSourcePayload (index) {
@@ -165,9 +138,9 @@ export default {
       item.id = uuid
       item.props = {
         style: {
-          // width: '200px',
-          // height: '150px',
-          // backgroundColor: '#ccc'
+          width: '700px',
+          height: '150px',
+          backgroundColor: '#ccc'
         }
       }
       return item
@@ -178,22 +151,21 @@ export default {
       let uuid = v4().replace(/-/g, "") // 随机生成 id
       let item = _.cloneDeep(this.colItems[index])
       let arr = []
-      const previewerWith = this.styles.previewerStyle.width
-      const previewerHeight = this.styles.previewerStyle.height
-      const onlyNumReg = /[^\d.-]/g
+      // const previewerWith = this.styles.previewerStyle.width
+      // const previewerHeight = this.styles.previewerStyle.height
+      // const onlyNumReg = /[^\d.-]/g
 
-      let layoutWidth =
-        (previewerWith.replace(onlyNumReg, "") - 20) / item.colNum
-      let layoutHeight = previewerHeight.replace(onlyNumReg, "") - 20
+      // let layoutWidth = (previewerWith.replace(onlyNumReg, "") - 20) / item.colNum
+      // let layoutHeight = previewerHeight.replace(onlyNumReg, "") - 20
       for (let i = 0, l = item.colNum; i < l; i++) {
         let uid = v4().replace(/-/g, "") // 随机生成 id
         let obj = {
           id: uid,
           props: {
             style: {
-              width: `${layoutWidth}px`,
-              height: `${layoutHeight}px`,
-              ...this.styles.layoutStyle
+              minWidth: '500px',
+              border: '1px dashed #37a1c8',
+              boxSizing: 'border-box'
             }
           },
           data: "hello world "
@@ -204,7 +176,16 @@ export default {
       item = {
         id: uuid,
         props: {
-          style: this.styles.previewerStyle
+          style: {
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: '20px',
+            minWidth: "600px",
+            minHeight: "200px",
+            border: '1px dashed #842',
+            boxSizing: 'border-box'
+          }
         },
         children: arr,
         ...item
@@ -230,9 +211,6 @@ export default {
       const previewer = Object.assign({}, this.previewer)
       previewer.children = applyDrag(previewer.children, dropResult)
       this.previewer = previewer
-    },
-
-    onDropReady (columnId) {
     },
 
     // 在布局内放置元素组件
@@ -295,6 +273,7 @@ export default {
     &::before {
       content: '';
       position: absolute;
+      top: 0;
       left: 0;
       width: 100%;
       border-top: 3px solid #990;
@@ -302,9 +281,20 @@ export default {
       visibility: hidden;
     }
     &:hover {
+      background-color: #c5e6f4;
       &::before {
         visibility: visible;
       }
+    }
+  }
+  .drop-tips {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #c5e6f4;
+    min-height: 60px;
+    &::before {
+      content: 'DROP HERE'
     }
   }
 }
