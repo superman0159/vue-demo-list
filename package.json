@@ -7,8 +7,12 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "element-ui": "^2.3.6",
+    "lodash": "^4.17.11",
+    "uuid": "^3.3.2",
     "vue": "^2.5.17",
     "vue-router": "^3.0.1",
+    "vue-smooth-dnd": "^0.2.8",
     "vuex": "^3.0.1"
   },
   "devDependencies": {
@@ -16,6 +20,7 @@
     "@vue/cli-service": "^3.2.0",
     "less": "^3.0.4",
     "less-loader": "^4.1.0",
+    "vue-cli-plugin-element-ui": "^1.1.4",
     "vue-template-compiler": "^2.5.17"
   }
 }
