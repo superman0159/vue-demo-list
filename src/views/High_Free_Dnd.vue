@@ -15,7 +15,7 @@
           :style="template.props.style"
         >
           <div>
-            <span v-show="template.type !== 'column'">
+            <span v-if="template.type !== 'column'">
               {{template.data}}
             </span>
           </div>
@@ -29,20 +29,23 @@
               :key="col.id"
               :style="col.props.style"
             >
-              {{ col.data }}{{ index }}
+              <!-- {{ col.data }}{{ index }} -->
               <!-- Elements -->
               <Container
                 group-name="2"
-                @drop-ready="onDropReady"
+                @drop-ready="onDropReady(col.id)"
                 @drop="onElementsDrop(col.id, index, $event)"
                 :get-child-payload="getElementPayload(col.id)"
                 :should-animate-drop="shouldAnimateDrop"
-              >
+                class="guide"
+                >
                 <Draggable
                   v-for="el in col.children"
                   :key="el.id"
-                >
+                  >
+                <div :style="el.props.style">
                   {{ el.data }}
+                </div>
                 </Draggable>
               </Container>
             </Draggable>
@@ -90,9 +93,9 @@
 </template>
 
 <script>
-import { Container, Draggable } from "vue-smooth-dnd";
-import { applyDrag, generateItems } from "@/utils/helpers";
-import { v4 } from "uuid";
+import { Container, Draggable } from "vue-smooth-dnd"
+import { applyDrag, generateItems } from "@/utils/helpers"
+import { v4 } from "uuid"
 export default {
   components: { Container, Draggable },
   data() {
@@ -121,49 +124,69 @@ export default {
           justifyContent: "center",
           alignItems: "center",
           width: "800px",
-          height: "200px",
-          border: "1px dotted #059",
-          boxSizing: "border-box"
+          height: "200px"
         },
-        layoutStyle: {
-          border: "1px dashed #066",
-          boxSizing: "border-box"
-        }
+        layoutStyle: {}
       }
-    };
+    }
   },
-  mounted() {
+  mounted () {
+    let params = [
+      {name: 'previewer', size: 1, lineStyle: 'dashed', color: '#842'},
+      {name: 'layout', size: 1, lineStyle: 'dashed', color: '#995'}
+    ]
+    this.initBorderStyle(params)
     // 初始化
-    const init = this.getSourceLayoutPayload(0);
-    this.previewer.children.push(init);
+    const init = this.getSourceLayoutPayload(0)
+    this.previewer.children.push(init)
   },
   methods: {
+    // init
+    initBorderStyle (arr) {
+      arr.map(v => {
+        const styles = this.styles[`${v.name}Style`]
+        const border = `${v.size}px ${v.lineStyle} ${v.color}`
+        let newStyle = {
+          borderTop: border,
+          borderBottom: border,
+          borderLeft: border,
+          borderRight: border,
+          boxSizing: 'border-box',
+          ...styles
+        }
+        this.styles[`${v.name}Style`] = newStyle
+      })
+    },
+
     // 拖拽源组件
     getSourcePayload (index) {
-      let uuid = v4().replace(/-/g, ""); // 随机生成 id
-      let item = _.cloneDeep(this.items[index]);
-      item.id = uuid;
+      let uuid = v4().replace(/-/g, "") // 随机生成 id
+      let item = _.cloneDeep(this.items[index])
+      item.id = uuid
       item.props = {
-        style: this.styles.previewerStyle
-      };
-      // console.log('source', item)
-      return item;
+        style: {
+          // width: '200px',
+          // height: '150px',
+          // backgroundColor: '#ccc'
+        }
+      }
+      return item
     },
 
     // 拖拽源布局组件
     getSourceLayoutPayload (index) {
-      let uuid = v4().replace(/-/g, ""); // 随机生成 id
-      let item = _.cloneDeep(this.colItems[index]);
-      let arr = [];
-      const previewerWith = this.styles.previewerStyle.width;
-      const previewerHeight = this.styles.previewerStyle.height;
-      const onlyNumReg = /[^\d.-]/g;
+      let uuid = v4().replace(/-/g, "") // 随机生成 id
+      let item = _.cloneDeep(this.colItems[index])
+      let arr = []
+      const previewerWith = this.styles.previewerStyle.width
+      const previewerHeight = this.styles.previewerStyle.height
+      const onlyNumReg = /[^\d.-]/g
 
       let layoutWidth =
-        (previewerWith.replace(onlyNumReg, "") - 20) / item.colNum;
-      let layoutHeight = previewerHeight.replace(onlyNumReg, "") - 20;
+        (previewerWith.replace(onlyNumReg, "") - 20) / item.colNum
+      let layoutHeight = previewerHeight.replace(onlyNumReg, "") - 20
       for (let i = 0, l = item.colNum; i < l; i++) {
-        let uid = v4().replace(/-/g, ""); // 随机生成 id
+        let uid = v4().replace(/-/g, "") // 随机生成 id
         let obj = {
           id: uid,
           props: {
@@ -174,8 +197,8 @@ export default {
             }
           },
           data: "hello world "
-        };
-        arr.push(obj);
+        }
+        arr.push(obj)
       }
 
       item = {
@@ -185,65 +208,64 @@ export default {
         },
         children: arr,
         ...item
-      };
+      }
 
-      return item;
+      return item
     },
 
     // 拖拽已在视图上生成的元素
     getElementPayload (columnId) {
       return index => {
-        let res = {};
+        let res = {}
         this.previewer.children.map(v => {
-          let obj = v.children.filter(x => x.id === columnId)[0];
-          obj !== undefined && (res = obj.children[index]);
-        });
-        return { ...res };
-      };
+          let obj = v.children.filter(x => x.id === columnId)[0]
+          obj !== undefined && (res = obj.children[index])
+        })
+        return { ...res }
+      }
     },
 
     // 在画布上放置布局组件
     onPreviewerDrop (dropResult) {
-      const previewer = Object.assign({}, this.previewer);
-      previewer.children = applyDrag(previewer.children, dropResult);
-      this.previewer = previewer;
+      const previewer = Object.assign({}, this.previewer)
+      previewer.children = applyDrag(previewer.children, dropResult)
+      this.previewer = previewer
     },
 
-    onDropReady (dropResult) {
-      console.log('ready', dropResult)
+    onDropReady (columnId) {
     },
 
     // 在布局内放置元素组件
     onElementsDrop (columnId, columnIndex, dropResult) {
-      const { addedIndex, removedIndex, payload } = dropResult;
-      let result = _.cloneDeep(dropResult);
+      const { addedIndex, removedIndex, payload } = dropResult
+      let result = _.cloneDeep(dropResult)
       if (Array.isArray(payload)) {
-        result.payload = { ...payload[0] };
+        result.payload = { ...payload[0] }
       }
       if (addedIndex !== null || removedIndex !== null) {
-        const previewer = Object.assign({}, this.previewer);
-        let column = {};
-        let preivewerIndex = 0;
+        const previewer = Object.assign({}, this.previewer)
+        let column = {}
+        let preivewerIndex = 0
 
         /* 此处为暴力枚举，需设法优化 */
         previewer.children.map((v, i) => {
-          let res = v.children.filter(x => x.id === columnId)[0];
+          let res = v.children.filter(x => x.id === columnId)[0]
           if (res !== undefined) {
-            column = res;
-            preivewerIndex = i;
+            column = res
+            preivewerIndex = i
           }
-        });
-        const newColumn = Object.assign({}, column);
+        })
+        const newColumn = Object.assign({}, column)
         // 初始化 children
-        newColumn.children === undefined && (newColumn.children = []);
-        newColumn.children = applyDrag(newColumn.children, result);
+        newColumn.children === undefined && (newColumn.children = [])
+        newColumn.children = applyDrag(newColumn.children, result)
 
         previewer.children[preivewerIndex].children.splice(
           columnIndex,
           1,
           newColumn
-        );
-        this.previewer = previewer;
+        )
+        this.previewer = previewer
       }
     },
 
@@ -252,7 +274,7 @@ export default {
       return false
     }
   }
-};
+}
 </script>
 <style scoped  lang="less">
 & /deep/ .el-col {
@@ -269,10 +291,21 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-}
-.drop-class {
-  box-sizing: border-box;
-  background-color: #f06;
-  border: 2px rgb(0, 38, 255) solid;
+  .guide {
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      width: 100%;
+      border-top: 3px solid #990;
+      box-sizing: border-box;
+      visibility: hidden;
+    }
+    &:hover {
+      &::before {
+        visibility: visible;
+      }
+    }
+  }
 }
 </style>
