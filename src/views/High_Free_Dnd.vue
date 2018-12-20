@@ -19,7 +19,7 @@
               {{template.data}}
             </span>
           </div>
-          <!-- Layout -->
+          <!-- Row -->
           <Container
             orientation="horizontal"
             drag-handle-selector=".no-drag"
@@ -80,7 +80,7 @@
           class="draggable-items"
           behaviour="copy"
           group-name="1"
-          :get-child-payload="getSourceLayoutPayload"
+          :get-child-payload="getSourceRowPayload"
         >
           <Draggable
             v-for="item in colItems"
@@ -110,7 +110,7 @@ export default {
         { type: "txt", data: "文本" },
         { type: "test", data: "test" }
       ],
-      // Source Layout
+      // Source Row
       colItems: [
         { type: "column", colNum: 1, data: "one column" },
         { type: "column", colNum: 2, data: "two columns" },
@@ -126,7 +126,7 @@ export default {
   },
   mounted () {
     // 初始化
-    const init = this.getSourceLayoutPayload(0)
+    const init = this.getSourceRowPayload(0)
     this.previewer.children.push(init)
   },
   methods: {
@@ -138,7 +138,7 @@ export default {
       item.id = uuid
       item.props = {
         style: {
-          width: '700px',
+          width: '100%',
           height: '150px',
           backgroundColor: '#ccc'
         }
@@ -147,7 +147,7 @@ export default {
     },
 
     // 拖拽源布局组件
-    getSourceLayoutPayload (index) {
+    getSourceRowPayload (index) {
       let uuid = v4().replace(/-/g, "") // 随机生成 id
       let item = _.cloneDeep(this.colItems[index])
       let arr = []
@@ -155,16 +155,21 @@ export default {
       // const previewerHeight = this.styles.previewerStyle.height
       // const onlyNumReg = /[^\d.-]/g
 
-      // let layoutWidth = (previewerWith.replace(onlyNumReg, "") - 20) / item.colNum
-      // let layoutHeight = previewerHeight.replace(onlyNumReg, "") - 20
+      // let RowWidth = (previewerWith.replace(onlyNumReg, "") - 20) / item.colNum
+      // let RowHeight = previewerHeight.replace(onlyNumReg, "") - 20
       for (let i = 0, l = item.colNum; i < l; i++) {
         let uid = v4().replace(/-/g, "") // 随机生成 id
+        let colWidth = (600 - (l - 1) * 20) / l
+        console.log('col width', colWidth, i)
         let obj = {
           id: uid,
           props: {
+            // 每一列 (column) 的样式
             style: {
-              minWidth: '500px',
+              width: `${colWidth}px`,
+              minHeight: '60px',
               border: '1px dashed #37a1c8',
+              margin: '10px',
               boxSizing: 'border-box'
             }
           },
@@ -176,13 +181,14 @@ export default {
       item = {
         id: uuid,
         props: {
+          // 每一行 (row) 的样式
           style: {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            padding: '20px',
-            minWidth: "600px",
-            minHeight: "200px",
+            // padding: '20px',
+            width: "100%",
+            minHeight: "100px",
             border: '1px dashed #842',
             boxSizing: 'border-box'
           }
@@ -294,7 +300,8 @@ export default {
     background-color: #c5e6f4;
     min-height: 60px;
     &::before {
-      content: 'DROP HERE'
+      content: 'DROP HERE';
+      color: #fff;
     }
   }
 }
